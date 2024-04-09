@@ -165,7 +165,7 @@
 
                 const captureButton1 = document.getElementById("front");
                 captureButton1.addEventListener("click", () => {
-                    documentSettings.captureMode = "Auto";
+                    documentSettings.captureMode = "Manual";
                     documentSettings.nativeFrontFocusThreshold = 100;
                     documentSettings.nativeFrontGlareThreshold = 100;
                     documentSettings.setManualTimeout = 10;
@@ -182,7 +182,7 @@
                 captureButton2.addEventListener("click", () => {
                     documentSettings.backFocusThreshold = 100;
                     documentSettings.backGlareThreshold = 100;
-                    documentSettings.captureMode = "Auto";
+                    documentSettings.captureMode = "Manual";
                     documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
@@ -194,7 +194,7 @@
 
                 const captureButton3 = document.getElementById("selfie");
                 captureButton3.addEventListener("click", () => {
-                    documentSettings.captureMode = "Auto";
+                    documentSettings.captureMode = "Manual";
                     documentSettings.setManualTimeout = 10;
                     documentSettings.captureModeText = true;
                     documentSettings.enableFarSelfie = true;
