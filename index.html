@@ -125,7 +125,7 @@
             }
 
             // window.onCaptureFrameworkLoaded = () => {
-                const detectionProvider = 0;
+                const detectionProvider = 2;
                 const devLicenseKey = deviceKey;
                 captureFw = this.IDMetricsCaptureFramework;
                 captureFw.setDetectionProvider(detectionProvider, devLicenseKey).then(function () { });
@@ -166,8 +166,8 @@
                 const captureButton1 = document.getElementById("front");
                 captureButton1.addEventListener("click", () => {
                     documentSettings.captureMode = "Manual";
-                    documentSettings.nativeFrontFocusThreshold = 100;
-                    documentSettings.nativeFrontGlareThreshold = 100;
+                    documentSettings.nativeFrontFocusThreshold = 50;
+                    documentSettings.nativeFrontGlareThreshold = 50;
                     documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
@@ -180,8 +180,8 @@
 
                 const captureButton2 = document.getElementById("back");
                 captureButton2.addEventListener("click", () => {
-                    documentSettings.backFocusThreshold = 100;
-                    documentSettings.backGlareThreshold = 100;
+                    documentSettings.backFocusThreshold = 50;
+                    documentSettings.backGlareThreshold = 50;
                     documentSettings.captureMode = "Manual";
                     documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
