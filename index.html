@@ -166,9 +166,9 @@
                 const captureButton1 = document.getElementById("front");
                 captureButton1.addEventListener("click", () => {
                     documentSettings.captureMode = "Manual";
-                    documentSettings.nativeFrontFocusThreshold = 50;
-                    documentSettings.nativeFrontGlareThreshold = 50;
-                    documentSettings.setManualTimeout = 10;
+                    documentSettings.nativeFrontFocusThreshold = 0;
+                    documentSettings.nativeFrontGlareThreshold = 0;
+                    documentSettings.setManualTimeout = 0;
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
                     documentSettings.documentSide = "Front";
@@ -180,8 +180,8 @@
 
                 const captureButton2 = document.getElementById("back");
                 captureButton2.addEventListener("click", () => {
-                    documentSettings.backFocusThreshold = 50;
-                    documentSettings.backGlareThreshold = 50;
+                    documentSettings.backFocusThreshold = 0;
+                    documentSettings.backGlareThreshold = 0;
                     documentSettings.captureMode = "Manual";
                     documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
