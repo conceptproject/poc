@@ -165,14 +165,10 @@
 
                 const captureButton1 = document.getElementById("front");
                 captureButton1.addEventListener("click", () => {
-                    documentSettings.captureMode = "Manual";
-                    documentSettings.nativeFrontFocusThreshold = 0;
-                    documentSettings.nativeFrontGlareThreshold = 0;
-                    documentSettings.setManualTimeout = 0;
+                    documentSettings.captureMode = "Auto";
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
                     documentSettings.documentSide = "Front";
-                    documentSettings.autoCrop = true;
                     window.deviceThreshold.useNativeCamera = false;
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
@@ -180,10 +176,7 @@
 
                 const captureButton2 = document.getElementById("back");
                 captureButton2.addEventListener("click", () => {
-                    documentSettings.backFocusThreshold = 0;
-                    documentSettings.backGlareThreshold = 0;
-                    documentSettings.captureMode = "Manual";
-                    documentSettings.setManualTimeout = 10;
+                    documentSettings.captureMode = "Auto";
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
                     documentSettings.documentSide = "Back";
@@ -194,11 +187,9 @@
 
                 const captureButton3 = document.getElementById("selfie");
                 captureButton3.addEventListener("click", () => {
-                    documentSettings.captureMode = "Manual";
-                    documentSettings.setManualTimeout = 10;
+                    documentSettings.captureMode = "Auto";
                     documentSettings.captureModeText = true;
                     documentSettings.enableFarSelfie = true;
-                    documentSettings.autoCrop = true;
                     window.deviceThreshold.useNativeCamera = false;
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanSelfie(documentSettings, captureResult);
