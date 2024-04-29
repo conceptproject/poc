@@ -164,23 +164,15 @@
                 });
 
                 const captureButton1 = document.getElementById("front");
-                captureButton1.addEventListener("click", () => {
+                captureButton1.addEventListener("click", () => {                    
                     documentSettings.captureMode = "Auto";
+                    documentSettings.nativeFrontFocusThreshold = 100;
+                    documentSettings.nativeFrontGlareThreshold = 100;
+                    documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
                     documentSettings.documentSide = "Front";
-                    documentSettings.frontFocusThreshold = 30;
-                    documentSettings.frontGlareThreshold = 2.5;
-                    documentSettings.compressionType =  "JPEG";
-                    documentSettings.compressionQuality = 70;
-                    documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
-                    documentSettings.overlayText = "Align ID within box and capture";
-                    documentSettings.overlayColor = "yellow";
-                    documentSettings.enableFaceDetection = true;
-                    documentSettings.setManualTimeout = 15;
-                    documentSettings.enableLocationDetection = true;
-                    documentSettings.autoCaptureCheckNFrames = 2;
-                    documentSettings.useNativeCamera = false;
+                    documentSettings.autoCrop = true;
                     window.deviceThreshold.useNativeCamera = false;
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
@@ -189,20 +181,13 @@
                 const captureButton2 = document.getElementById("back");
                 captureButton2.addEventListener("click", () => {
                     documentSettings.captureMode = "Auto";
+                    documentSettings.nativeFrontFocusThreshold = 100;
+                    documentSettings.nativeFrontGlareThreshold = 100;
+                    documentSettings.setManualTimeout = 10;
                     documentSettings.documentType = "License";
                     documentSettings.captureModeText = true;
                     documentSettings.documentSide = "Back";
-                    documentSettings.frontFocusThreshold = 30;
-                    documentSettings.frontGlareThreshold = 2.5;
-                    documentSettings.compressionType =  "JPEG";
-                    documentSettings.compressionQuality = 70;
-                    documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
-                    documentSettings.overlayText = "Align ID within box and capture";
-                    documentSettings.overlayColor = "yellow";
-                    documentSettings.enableFaceDetection = true;
-                    documentSettings.setManualTimeout = 15;
-                    documentSettings.enableLocationDetection = true;
-                    documentSettings.autoCaptureCheckNFrames = 2;                    
+                    documentSettings.autoCrop = true;                 
                     window.deviceThreshold.useNativeCamera = false;
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
