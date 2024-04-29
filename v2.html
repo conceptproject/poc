@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .imgContainer {
+            border: 2px solid;
+            text-align: center;
+            padding: 40px;
+        }
+
+        code {
+            display: inline-block;
+            width: 100px;
+            /* Whatever. The <code>'s width will change */
+        }
+
+        .box {
+            width: 500px;
+            word-wrap: break-word;
+            font-size: 10px;
+        }
+
+        .actions {
+            border: 1px solid;
+            margin-top: 40px;
+            padding: 20px
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .blue {
+            background-color: #3D5AFE;
+        }
+
+        /* Blue */
+        .red {
+            background-color: #F7412C;
+        }
+
+        /* Red */
+        .purple {
+            background-color: #6834BC;
+        }
+
+        /* Purple */
+        .black {
+            background-color: #555555;
+        }
+
+        /* Black */
+
+        .form-container {
+            max-width: 500px;
+            width: 100%;
+            padding: 50px 30px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group label {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            font-size: 14px;
+            color: #777;
+            transition: top 0.3s ease, font-size 0.3s ease, color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .form-group input:focus+label,
+        .form-group input:not(:placeholder-shown)+label {
+            top: -6px;
+            font-size: 12px;
+            color: #007bff;
+            background-color: #ffffff;
+            padding: 0 4px;
+            border-radius: 4px;
+            left: 8px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script defer src="./IDMetricsCaptureFramework-4.8.5.js"></script>	
+    <script>
+        let captureFw = undefined;
+
+        function initializeCaptureFramework() {
+            debugger
+            const deviceKey = document.getElementById("deviceKeyInput").value.trim();
+            if (deviceKey === "") {
+                alert("Please enter a device key.");
+                return;
+            }
+
+            // window.onCaptureFrameworkLoaded = () => {
+                const detectionProvider = 0;
+                const devLicenseKey = deviceKey;
+                captureFw = this.IDMetricsCaptureFramework;
+                captureFw.setDetectionProvider(detectionProvider, devLicenseKey).then(function () { });
+                const documentSettings = new DocumentSettings();
+                const captureResult = new CaptureResult();
+                captureResult.setOnAborted(function (abortEvent) {
+                    console.log('abort', abortEvent);
+                    if (abortEvent.errorType == "camera-permission") {
+                        debugger;
+                    } else if (abortEvent.errorType == "user-cancel") {
+                        debugger;
+                    }
+                });
+
+                captureResult.setOnFinish(function () {
+                    if (captureResult.isSuccessful) {
+                        console.log('capture got success', captureResult);
+                        var img = new Image();
+                        img.style.width = '300px';
+                        img.style.height = 'auto';
+                        img.src = captureResult.result;
+                        document.getElementById('frontImg').appendChild(img);
+                        console.log(captureResult.result);
+                    } else {
+                        console.log('Not SuccessFull', captureResult);
+                    }
+                });
+
+                captureResult.setOnEvent((errorCode, errorDescription, event) => {
+                    console.log('onEvent', event);
+                    console.log('onEvent errorDescription', errorDescription);
+                });
+
+                captureResult.setOnCaptureModeChange(function (captureModeEvent) {
+                    console.log(captureModeEvent);
+                });
+
+                const captureButton1 = document.getElementById("front");
+                captureButton1.addEventListener("click", () => {
+                    documentSettings.captureMode = "Auto";
+                    documentSettings.documentType = "License";
+                    documentSettings.captureModeText = true;
+                    documentSettings.documentSide = "Front";
+                    documentSettings.frontFocusThreshold = 30;
+                    documentSettings.frontGlareThreshold = 2.5;
+                    documentSettings.compressionType =  "JPEG";
+                    documentSettings.compressionQuality = 70;
+                    documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
+                    documentSettings.overlayText = "Align ID within box and capture";
+                    documentSettings.overlayColor = "yellow";
+                    documentSettings.enableFaceDetection = true;
+                    documentSettings.setManualTimeout = 15;
+                    documentSettings.enableLocationDetection = true;
+                    documentSettings.autoCaptureCheckNFrames = 2;
+                    documentSettings.useNativeCamera = false;
+                    window.deviceThreshold.useNativeCamera = false;
+                    console.log('documentSettings', documentSettings);
+                    window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
+                });
+
+                const captureButton2 = document.getElementById("back");
+                captureButton2.addEventListener("click", () => {
+                    documentSettings.captureMode = "Auto";
+                    documentSettings.documentType = "License";
+                    documentSettings.captureModeText = true;
+                    documentSettings.documentSide = "Back";
+                    documentSettings.frontFocusThreshold = 30;
+                    documentSettings.frontGlareThreshold = 2.5;
+                    documentSettings.compressionType =  "JPEG";
+                    documentSettings.compressionQuality = 70;
+                    documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
+                    documentSettings.overlayText = "Align ID within box and capture";
+                    documentSettings.overlayColor = "yellow";
+                    documentSettings.enableFaceDetection = true;
+                    documentSettings.setManualTimeout = 15;
+                    documentSettings.enableLocationDetection = true;
+                    documentSettings.autoCaptureCheckNFrames = 2;                    
+                    window.deviceThreshold.useNativeCamera = false;
+                    console.log('documentSettings', documentSettings);
+                    window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
+                });
+
+                const captureButton3 = document.getElementById("selfie");
+                captureButton3.addEventListener("click", () => {
+                    documentSettings.captureMode = "Auto";
+                    documentSettings.captureModeText = true;
+                    documentSettings.enableFarSelfie = true;
+                    window.deviceThreshold.useNativeCamera = false;
+                    console.log('documentSettings', documentSettings);
+                    window.IDMetricsCaptureFramework.scanSelfie(documentSettings, captureResult);
+                });
+            }
+        // }
+
+    </script>
+
+</head>
+
+<body>
+    <div class="form-container">
+        <div class="form-group">
+          <input type="text" id="deviceKeyInput" >
+          <label>Enter Device Key</label>
+        </div>
+    <button id="loadFrameworkButton" class="btn black" onclick="initializeCaptureFramework()">Load Framework</button>
+
+    </div>
+
+    <div class="actions">
+        <button id="front" class="btn blue">Scan Document Front</button>
+        <button id="back" class="btn red">Scan Document back</button>
+        <button id="selfie" class="btn purple">Capture selfie</button>
+        <div id="frontImg" class="imgContainer"></div>
+
+        <div class="box">
+            <p id="base64Value"></p>
+        </div>
+    </div>
+
+</body>
+
+
+</html>
