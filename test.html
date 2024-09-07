@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- iOS Smart App Banner Meta Tag -->
+  <meta name="apple-itunes-app" content="app-id=1111876388">
+  
+  <!-- Title and description -->
+  <title>Install Our App</title>
+  
+  <!-- Custom CSS for Android Banner -->
+  <style>
+    #android-app-banner {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 16px;
+      z-index: 999;
+    }
+
+    #android-app-banner a {
+      color: #fff;
+      font-weight: bold;
+      text-decoration: none;
+      margin-left: 15px;
+      padding: 8px 15px;
+      background-color: #ff6f00;
+      border-radius: 4px;
+    }
+
+    #close-banner {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- Android App Banner -->
+  <div id="android-app-banner">
+    <span id="close-banner">&times;</span>
+    <p>Get our app for a better experience!</p>
+    <a href="https://play.google.com/store/apps/details?id=com.tmobile.tuesdays" id="install-app-btn">Install App</a>
+  </div>
+
+  <!-- Content of the webpage -->
+  <div>
+    <h1>Welcome to Our Website</h1>
+    <p>Explore our services and products, and make sure to download our mobile app for a better experience!</p>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Detect if the user is on Android
+    if (/android/i.test(navigator.userAgent)) {
+      document.getElementById('android-app-banner').style.display = 'block'; // Show the Android banner
+    }
+
+    // Close the Android banner when the user clicks the close button
+    document.getElementById('close-banner').addEventListener('click', function() {
+      document.getElementById('android-app-banner').style.display = 'none';
+    });
+
+    // Optional: Hide the banner after the app install button is clicked
+    document.getElementById('install-app-btn').addEventListener('click', function() {
+      document.getElementById('android-app-banner').style.display = 'none';
+    });
+  </script>
+
+</body>
+</html>
+
+<meta name="apple-itunes-app" content="app-id=1111876388, app-argument=https://example.com/specific-page">
