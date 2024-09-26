@@ -113,31 +113,20 @@
     </style>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script defer src="./IDMetricsCaptureFramework-4.8.5.js"></script>	
-    
-
-</head>
-
-<body>
-
-
-    <div class="actions">
-        <button id="front" class="btn blue">Scan Document Front</button>
-        <button id="back" class="btn red">Scan Document back</button>
-        <button id="selfie" class="btn purple">Capture selfie</button>
-        <div id="frontImg" class="imgContainer"></div>
-
-        <div class="box">
-            <p id="base64Value"></p>
-        </div>
-    </div>
-
-</body>
-
-<script>
+    <script>
         let captureFw = undefined;
+
+        function initializeCaptureFramework() {
+            debugger
+            const deviceKey = document.getElementById("deviceKeyInput").value.trim();
+            if (deviceKey === "") {
+                alert("Please enter a device key.");
+                return;
+            }
+
             // window.onCaptureFrameworkLoaded = () => {
                 const detectionProvider = 0;
-                const devLicenseKey = "testkey";
+                const devLicenseKey = deviceKey;
                 captureFw = this.IDMetricsCaptureFramework;
                 // captureFw.setDetectionProvider(detectionProvider, devLicenseKey).then(function () { });
                 const documentSettings = new DocumentSettings();
@@ -228,8 +217,34 @@
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanSelfie(documentSettings, captureResult);
                 });
-
+            }
         // }
 
     </script>
+
+</head>
+
+<body>
+    <div class="form-container">
+        <div class="form-group">
+          <input type="hidden" id="deviceKeyInput" value="testkey" >
+        </div>
+    <button id="loadFrameworkButton" class="btn black" onclick="initializeCaptureFramework()">Load Framework</button>
+
+    </div>
+
+    <div class="actions">
+        <button id="front" class="btn blue">Scan Document Front</button>
+        <button id="back" class="btn red">Scan Document back</button>
+        <button id="selfie" class="btn purple">Capture selfie</button>
+        <div id="frontImg" class="imgContainer"></div>
+
+        <div class="box">
+            <p id="base64Value"></p>
+        </div>
+    </div>
+
+</body>
+
+
 </html>
