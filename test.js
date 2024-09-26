@@ -17,3 +17,22 @@ with open('output.json', 'w') as json_file:
     json.dump(json_data, json_file, indent=4)
 
 print("Excel UUIDs have been converted to JSON with boolean values!")
+
+
+----
+
+     import uuid
+
+# Set the number of UUIDs to generate
+num_uuids = 20000
+filename = "uuids.txt"
+
+# Open the file in write mode
+with open(filename, "w") as file:
+    for _ in range(num_uuids):
+        # Generate a UUID and prefix it with 'U-'
+        unique_id = f"U-{uuid.uuid4()}"
+        # Write the UUID to the file
+        file.write(unique_id + "\n")
+
+print(f"{num_uuids} unique UUIDs have been saved to {filename}.")
