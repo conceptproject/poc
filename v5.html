@@ -115,13 +115,9 @@
     <script defer src="./IDMetricsCaptureFramework-4.8.5.js"></script>	
     <script>
         let captureFw = undefined;
-
-            const deviceKey = document.getElementById("deviceKeyInput").value.trim();
-            deviceKey = "testkey";
-
             // window.onCaptureFrameworkLoaded = () => {
                 const detectionProvider = 0;
-                const devLicenseKey = deviceKey;
+                const devLicenseKey = "testkey";
                 captureFw = this.IDMetricsCaptureFramework;
                 // captureFw.setDetectionProvider(detectionProvider, devLicenseKey).then(function () { });
                 const documentSettings = new DocumentSettings();
