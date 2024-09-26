@@ -116,9 +116,8 @@
     <script>
         let captureFw = undefined;
 
-        function initializeCaptureFramework() {
-            debugger
             const deviceKey = document.getElementById("deviceKeyInput").value.trim();
+            deviceKey = "testkey";
             if (deviceKey === "") {
                 alert("Please enter a device key.");
                 return;
@@ -217,7 +216,7 @@
                     console.log('documentSettings', documentSettings);
                     window.IDMetricsCaptureFramework.scanSelfie(documentSettings, captureResult);
                 });
-            }
+
         // }
 
     </script>
@@ -225,14 +224,7 @@
 </head>
 
 <body>
-    <div class="form-container">
-        <div class="form-group">
-          <input type="text" id="deviceKeyInput" >
-          <label>Enter Device Key</label>
-        </div>
-    <button id="loadFrameworkButton" class="btn black" onclick="initializeCaptureFramework()">Load Framework</button>
 
-    </div>
 
     <div class="actions">
         <button id="front" class="btn blue">Scan Document Front</button>
