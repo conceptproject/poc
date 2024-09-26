@@ -36,3 +36,32 @@ with open(filename, "w") as file:
         file.write(unique_id + "\n")
 
 print(f"{num_uuids} unique UUIDs have been saved to {filename}.")
+
+---
+
+
+    import uuid
+from openpyxl import Workbook
+
+# Set the number of UUIDs to generate
+num_uuids = 20000
+filename = "uuids.xlsx"
+
+# Create a new Excel workbook and select the active worksheet
+wb = Workbook()
+ws = wb.active
+ws.title = "UUIDs"
+
+# Write headers to the first row
+ws.append(["UUID"])
+
+# Generate UUIDs and write them to the worksheet
+for _ in range(num_uuids):
+    unique_id = f"U-{uuid.uuid4()}"
+    ws.append([unique_id])
+
+# Save the workbook to the specified file
+wb.save(filename)
+
+print(f"{num_uuids} unique UUIDs have been saved to {filename}.")
+
