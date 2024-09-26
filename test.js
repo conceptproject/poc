@@ -1,34 +1,19 @@
-Sub ExcelToJsonWithBoolean()
-    Dim rowIndex As Long
-    Dim sheet As Worksheet
-    Dim jsonString As String
-    
-    ' Set the worksheet where the UUIDs are stored
-    Set sheet = ThisWorkbook.Sheets("Sheet1")
-    
-    ' Start the JSON string
-    jsonString = "{"
-    
-    ' Loop through each row with a UUID in column A
-    For rowIndex = 2 To sheet.UsedRange.Rows.Count
-        ' Get the UUID from column A
-        uuid = sheet.Cells(rowIndex, 1).Value
-        
-        ' Add the UUID and associated boolean value to the JSON string
-        jsonString = jsonString & """" & uuid & """:{""BOOL"": true},"
-    Next rowIndex
-    
-    ' Remove the trailing comma from the last element and close the JSON
-    jsonString = Left(jsonString, Len(jsonString) - 1) & "}"
-    
-    ' Write the JSON string to a file
-    Dim fso As Object
-    Set fso = CreateObject("Scripting.FileSystemObject")
-    Dim fileStream As Object
-    Set fileStream = fso.CreateTextFile("output.json", True)
-    fileStream.Write jsonString
-    fileStream.Close
-    
-    ' Inform the user the process is complete
-    MsgBox "Excel UUIDs have been converted to JSON with boolean values!"
-End Sub
+import pandas as pd
+import json
+
+# Load the Excel file (replace 'file.xlsx' with the actual file name)
+excel_data = pd.read_excel('file.xlsx')
+
+# Assuming the column with UUIDs is named 'UUID' or is the first column
+uuid_column = excel_data.iloc[:, 0]
+
+# Create the JSON structure
+json_data = {}
+for uuid in uuid_column:
+    json_data[uuid] = {"BOOL": True}
+
+# Write the JSON data to a file
+with open('output.json', 'w') as json_file:
+    json.dump(json_data, json_file, indent=4)
+
+print("Excel UUIDs have been converted to JSON with boolean values!")
