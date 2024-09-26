@@ -113,7 +113,27 @@
     </style>
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script defer src="./IDMetricsCaptureFramework-4.8.5.js"></script>	
-    <script>
+    
+
+</head>
+
+<body>
+
+
+    <div class="actions">
+        <button id="front" class="btn blue">Scan Document Front</button>
+        <button id="back" class="btn red">Scan Document back</button>
+        <button id="selfie" class="btn purple">Capture selfie</button>
+        <div id="frontImg" class="imgContainer"></div>
+
+        <div class="box">
+            <p id="base64Value"></p>
+        </div>
+    </div>
+
+</body>
+
+<script>
         let captureFw = undefined;
             // window.onCaptureFrameworkLoaded = () => {
                 const detectionProvider = 0;
@@ -212,24 +232,4 @@
         // }
 
     </script>
-
-</head>
-
-<body>
-
-
-    <div class="actions">
-        <button id="front" class="btn blue">Scan Document Front</button>
-        <button id="back" class="btn red">Scan Document back</button>
-        <button id="selfie" class="btn purple">Capture selfie</button>
-        <div id="frontImg" class="imgContainer"></div>
-
-        <div class="box">
-            <p id="base64Value"></p>
-        </div>
-    </div>
-
-</body>
-
-
 </html>
