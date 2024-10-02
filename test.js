@@ -63,5 +63,12 @@ for _ in range(num_uuids):
 # Save the workbook to the specified file
 wb.save(filename)
 
+
+Use the id_token for SSO:
+
+When the user visits subdomain1.mysite.com, the browser will automatically send the cookie containing the id_token.
+subdomain1.mysite.com can then verify this id_token by checking its signature (using the public key from the OpenID Connect provider), validating its expiration, and confirming other claims such as the aud (audience) and iss (issuer).
+If the token is valid, you can consider the user authenticated without needing to redirect them to account.mysite.com to generate a new authorization code.
+
 print(f"{num_uuids} unique UUIDs have been saved to {filename}.")
 
