@@ -1,245 +1,238 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>IDMetrics 4.10.1 POC</title>
+  <title>AuthenticID WebSDK 5.x – Simple Capture Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    .imgContainer { border: 2px solid; text-align: center; padding: 40px; }
-    code { display: inline-block; width: 100px; }
-    .box { width: 500px; word-wrap: break-word; font-size: 10px; }
-    .actions { border: 1px solid; margin-top: 40px; padding: 20px }
-    .btn { background-color: #4CAF50; border: none; color: white; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; }
-    .blue { background-color: #3D5AFE; }
-    .red { background-color: #F7412C; }
-    .purple { background-color: #6834BC; }
-    .black { background-color: #555555; }
-    .form-container { max-width: 500px; width: 100%; padding: 50px 30px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
-    .form-group { position: relative; margin-bottom: 20px; }
-    .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; transition: border-color 0.3s ease; }
-    .form-group label { position: absolute; left: 12px; top: 12px; font-size: 14px; color: #777; transition: top 0.3s ease, font-size 0.3s ease, color 0.3s ease; }
-    .form-group input:focus { border-color: #007bff; outline: none; }
-    .form-group input:focus+label,
-    .form-group input:not(:placeholder-shown)+label {
-      top: -6px; font-size: 12px; color: #007bff; background-color: #ffffff; padding: 0 4px; border-radius: 4px; left: 8px;
-    }
+    body { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+    .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    button { padding: .6rem .9rem; border-radius: .5rem; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .status { margin:.5rem 0 1rem; color:#444; font-size:.95rem }
+    .previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; }
+    figure { margin:0; border:1px solid #eee; padding:.75rem; border-radius:.5rem; background:#fafafa }
+    figcaption { font-size:.85rem; color:#555; margin-top:.5rem; word-break: break-word; }
+    img { width:100%; height:auto; display:block; background:#ddd; border-radius:.25rem }
+    code { background:#f2f2f2; padding:.1rem .3rem; border-radius:.25rem }
   </style>
+</head>
+<body>
+  <h1>AuthenticID WebSDK 5.x – Simple Capture</h1>
 
-  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-  <!-- Load the 4.10.1 SDK (plain-code) -->
-  <script defer src="./IDMetricsCaptureFramework-4.10.1-plain-code.js"></script>
+  <div class="actions">
+    <button id="btn-front" disabled>📄 Capture Front</button>
+    <button id="btn-back" disabled>📄 Capture Back</button>
+    <button id="btn-selfie" disabled>🤳 Capture Selfie</button>
+  </div>
+
+  <div class="status" id="status">Loading SDK…</div>
+
+  <div class="previews">
+    <figure>
+      <img id="img-front" alt="Front preview (cropped if available)" />
+      <figcaption><strong>Front</strong> — <span id="meta-front">no capture yet</span></figcaption>
+    </figure>
+    <figure>
+      <img id="img-back" alt="Back preview (cropped if available)" />
+      <figcaption><strong>Back</strong> — <span id="meta-back">no capture yet</span></figcaption>
+    </figure>
+    <figure>
+      <img id="img-selfie" alt="Selfie preview (cropped if available)" />
+      <figcaption><strong>Selfie</strong> — <span id="meta-selfie">no capture yet</span></figcaption>
+    </figure>
+  </div>
+
+  <!-- 1) Include the SDK (development build) -->
+  <script src="./IDMetricsCaptureFramework-4.10.0-plain-code.js"></script>
 
   <script>
-    let captureFw = undefined;
-    let frameworkReady = false;
+    // 2) Set up init hook required by the SDK
+    let captureFw;
 
-    // 4.10.x: SDK calls this when its JS bundle is loaded.
     window.onCaptureFrameworkLoaded = async function () {
-      try {
-        // In 4.10.x the only supported provider is 1
-        const detectionProvider = 1;
-
-        const languageConfig = {
-          lang: "en",
-          localizedStrings: {
-            notifications: {
-              faceNotFound: "Face not aligned",
-              tooManyFaces: "More than one face",
-              moveAway: "Move away",
-              moveCloser: "Move closer",
-              onBlur: "Keep your phone steady to capture a clear image",
-              onDark: "Please move to a brighter location or turn on more lights",
-              onFaceAngleV2: "Align face within the white silhouette",
-              removeLenses: "Take off your glasses",
-              lenses: "Lenses detected",
-              eyesClosed: "Eyes closed",
-              mask: "Face mask detected",
-              centerFaceV2: "Make sure you align the face within the silhouette",
-              getReady: "Get ready and stay still..."
-            },
-            idv2: {
-              capture: {
-                autoCapture: "The photo will be taken automatically",
-                dontMove: "Don't move your ID for a few seconds",
-                fillFrameBack: "Fill the frame with your back ID",
-                fillFrameFront: "Fill the frame with your ID",
-                fillFramePassport: "Fill the frame with your passport",
-                manualCapture: { ariaLabel: "Manual Capture", title: "Manual Capture Button" },
-                notifications: {
-                  blur: { description: "Zoom in and out, or tap on the ID", title: "ID too blurry" },
-                  expiredId: "Expired ID document",
-                  glare: { description: "Find a better lighting to avoid reflections", title: "ID with glare" },
-                  notAligned: { description: "Center your ID inside the frame", title: "ID is not aligned" },
-                  showBack: { description: "Flip your ID to show its reverse side", title: "Show the back of ID" },
-                  showFront: { description: "Flip your ID to show its front side", title: "Show the front of ID" },
-                  useDifferent: "Use a different ID"
-                },
-                takingPhoto: "Taking photo..."
+      const detectionProvider = 1; // 1 is the only supported provider in >= 4.10.0
+      const languageConfig = {
+        lang: "en",
+        localizedStrings: {
+          notifications: {
+            faceNotFound: "Face not aligned",
+            tooManyFaces: "More than one face",
+            moveAway: "Move away",
+            moveCloser: "Move closer",
+            onBlur: "Keep your phone steady to capture a clear image",
+            onDark: "Please move to a brighter location or turn on more lights",
+            onFaceAngleV2: "Align face within the white silhouette",
+            removeLenses: "Take off your glasses",
+            lenses: "Lenses detected",
+            eyesClosed: "Eyes closed",
+            mask: "Face mask detected",
+            centerFaceV2: "Make sure you align the face within the silhouette",
+            getReady: "Get ready and stay still..."
+          },
+          idv2: {
+            capture: {
+              autoCapture: "The photo will be taken automatically",
+              dontMove: "Don't move your ID for a few seconds",
+              fillFrameBack: "Fill the frame with your back ID",
+              fillFrameFront: "Fill the frame with your ID",
+              fillFramePassport: "Fill the frame with your passport",
+              manualCapture: { ariaLabel: "Manual Capture", title: "Manual Capture Button" },
+              notifications: {
+                blur: { description: "Zoom in and out, or tap on the ID", title: "ID too blurry" },
+                expiredId: "Expired ID document",
+                glare: { description: "Find a better lighting to avoid reflections", title: "ID with glare" },
+                notAligned: { description: "Center your ID inside the frame", title: "ID is not aligned" },
+                showBack: { description: "Flip your ID to show its reverse side", title: "Show the back of ID" },
+                showFront: { description: "Flip your ID to show its front side", title: "Show the front of ID" },
+                useDifferent: "Use a different ID"
               },
-              commonIssues: { firstStep: "1. Fill the frame with your ID", secondStep: "2. Press the button" },
-              flipAnimation: { title: "Show the back of your ID" }
+              takingPhoto: "Taking photo..."
             },
-            selfiev2: {
-              manualCapture: { instructions: "Center your face in the silhouette and press the button to capture" }
+            commonIssues: {
+              firstStep: "1. Fill the frame with your ID",
+              secondStep: "2. Press the button"
+            },
+            flipAnimation: { title: "Show the back of your ID" }
+          },
+          selfiev2: {
+            manualCapture: {
+              instructions: "Center your face in the silhouette and press the button to capture"
             }
           }
-        };
+        }
+      };
 
-        captureFw = window.IDMetricsCaptureFramework;
+      captureFw = window.IDMetricsCaptureFramework;
 
-        // IMPORTANT: 4.10 init – this also boots the WASM/cpp engine
+      try {
         await captureFw.setDetectionProvider(detectionProvider, languageConfig);
-
-        frameworkReady = true;
-        console.log("IDMetrics 4.10.1 initialized");
-
-        // Enable buttons now that the framework is initialized
-        document.getElementById("front").disabled = false;
-        document.getElementById("back").disabled = false;
-        document.getElementById("selfie").disabled = false;
-
+        setStatus("SDK ready");
+        enableButtons(true);
+        console.log("[AID] SDK ready");
       } catch (err) {
-        console.error("Framework init failed", err);
-        alert("Framework init failed: " + (err?.message || err));
+        setStatus("Failed to initialize SDK: " + (err?.message || err));
+        console.error("[AID] setDetectionProvider error", err);
       }
     };
 
-    function initializeCaptureFramework() {
-      // You can keep this button to simulate “load framework”.
-      // With 4.10.x the actual readiness comes from onCaptureFrameworkLoaded + setDetectionProvider above.
-      if (!window.IDMetricsCaptureFramework) {
-        alert("SDK not loaded yet. Wait for the script or check the path.");
-        return;
-      }
-      alert("SDK script loaded; initialization will complete automatically.");
-    }
+    // 3) Wire up buttons
+    const $ = (id) => document.getElementById(id);
 
-    function ensureReady() {
-      if (!frameworkReady) {
-        alert("Framework is not ready yet. Please wait a moment and try again.");
-        throw new Error("Framework not ready");
-      }
-    }
+    const btnFront  = $("btn-front");
+    const btnBack   = $("btn-back");
+    const btnSelfie = $("btn-selfie");
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const captureResult = new CaptureResult();
-      const documentSettings = new DocumentSettings();
-
-      // Initially disable buttons until frameworkReady is true
-      document.getElementById("front").disabled = true;
-      document.getElementById("back").disabled = true;
-      document.getElementById("selfie").disabled = true;
-
-      captureResult.setOnAborted((abortEvent) => {
-        console.log("abort", abortEvent);
-      });
-
-      captureResult.setOnFinish(() => {
-        if (captureResult.isSuccessful) {
-          console.log("capture success", captureResult);
-          const img = new Image();
-          img.style.width = "300px";
-          img.style.height = "auto";
-          img.src = captureResult.result;
-          document.getElementById("frontImg").appendChild(img);
-        } else {
-          console.log("capture not successful", captureResult);
-        }
-      });
-
-      captureResult.setOnEvent((errorCode, errorDescription, event) => {
-        console.log("onEvent", event, errorDescription);
-      });
-
-      captureResult.setOnCaptureModeChange((captureModeEvent) => {
-        console.log("modeChange", captureModeEvent);
-      });
-
-      // FRONT
-      document.getElementById("front").addEventListener("click", async () => {
-        ensureReady();
-
-        documentSettings.captureMode = "Auto";
-        documentSettings.documentType = "License";
-        documentSettings.captureModeText = true;
-        documentSettings.documentSide = "Front";
-        documentSettings.frontFocusThreshold = 30;
-        documentSettings.frontGlareThreshold = 2.5;
-        documentSettings.compressionType = "JPEG";
-        documentSettings.compressionQuality = 70;
-        documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
-        documentSettings.overlayText = "Align ID within box and capture";
-        documentSettings.overlayColor = "yellow";
-        documentSettings.enableFaceDetection = true;
-        documentSettings.setManualTimeout = 15;
-        documentSettings.enableLocationDetection = true;
-        documentSettings.autoCaptureCheckNFrames = 2;
-
-        try {
-          await window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
-        } catch (e) {
-          console.error("scanDocument(front) failed:", e);
-        }
-      });
-
-      // BACK
-      document.getElementById("back").addEventListener("click", async () => {
-        ensureReady();
-
-        documentSettings.captureMode = "Auto";
-        documentSettings.documentType = "License";
-        documentSettings.captureModeText = true;
-        documentSettings.documentSide = "Back";
-        documentSettings.frontFocusThreshold = 30;
-        documentSettings.frontGlareThreshold = 2.5;
-        documentSettings.compressionType = "JPEG";
-        documentSettings.compressionQuality = 70;
-        documentSettings.overlayTextAuto = "Align ID and tap <br/> to capture.";
-        documentSettings.overlayText = "Align ID within box and capture";
-        documentSettings.overlayColor = "yellow";
-        documentSettings.enableFaceDetection = true;
-        documentSettings.setManualTimeout = 15;
-        documentSettings.enableLocationDetection = true;
-        documentSettings.autoCaptureCheckNFrames = 2;
-
-        try {
-          await window.IDMetricsCaptureFramework.scanDocument(documentSettings, captureResult);
-        } catch (e) {
-          console.error("scanDocument(back) failed:", e);
-        }
-      });
-
-      // SELFIE
-      document.getElementById("selfie").addEventListener("click", async () => {
-        ensureReady();
-
-        documentSettings.captureMode = "Auto";
-        documentSettings.captureModeText = true;
-        documentSettings.enableFarSelfie = true;
-
-        try {
-          await window.IDMetricsCaptureFramework.scanSelfie(documentSettings, captureResult);
-        } catch (e) {
-          console.error("scanSelfie failed:", e);
-        }
-      });
+    btnFront.addEventListener("click", async () => {
+      await captureIdSide("Front", $("img-front"), $("meta-front"));
     });
+
+    btnBack.addEventListener("click", async () => {
+      await captureIdSide("Back", $("img-back"), $("meta-back"));
+    });
+
+    btnSelfie.addEventListener("click", async () => {
+      await captureSelfie($("img-selfie"), $("meta-selfie"));
+    });
+
+    function enableButtons(on) {
+      btnFront.disabled  = !on;
+      btnBack.disabled   = !on;
+      btnSelfie.disabled = !on;
+    }
+
+    function setStatus(text) {
+      $("status").textContent = text;
+    }
+
+    // 4) Helpers to drive the SDK
+    async function captureIdSide(side, imgEl, metaEl) {
+      // Minimal options — you can add captureMode, documentType, theme colors, etc.
+      const options = {
+        documentSide: side,            // "Front" | "Back"
+        documentType: "License",       // or "Passport", "PassportCard" if supported
+        captureMode: "Auto"            // "Auto" | "Manual"
+      };
+
+      try {
+        enableButtons(false);
+        setStatus(`Capturing ${side.toLowerCase()}…`);
+        const result = await captureFw.scanDocument(options);
+
+        // The SDK typically returns both full and cropped; favor cropped if present
+        const img =
+          result?.croppedResult     ||
+          result?.croppedFrontImage ||
+          result?.croppedBackImage  ||
+          result?.result            ||
+          result?.frontImage        ||
+          result?.backImage         ||
+          null;
+
+        if (img) {
+          imgEl.src = ensureDataUrl(img);
+          metaEl.textContent = describeDocResult(result, side);
+        } else {
+          metaEl.textContent = "No image returned.";
+        }
+
+        console.log(`[AID] ${side} result`, result);
+        setStatus(`Done: ${side}`);
+      } catch (err) {
+        console.error(`[AID] scanDocument(${side}) error`, err);
+        setStatus(`Error capturing ${side}: ${(err && err.message) || err}`);
+      } finally {
+        enableButtons(true);
+      }
+    }
+
+    async function captureSelfie(imgEl, metaEl) {
+      try {
+        enableButtons(false);
+        setStatus("Capturing selfie…");
+        const result = await captureFw.scanSelfie({
+          captureMode: "Auto" // or "Manual"
+        });
+
+        const img = result?.croppedResult || result?.result || null;
+        if (img) {
+          imgEl.src = ensureDataUrl(img);
+          metaEl.textContent = describeSelfieResult(result);
+        } else {
+          metaEl.textContent = "No image returned.";
+        }
+
+        console.log("[AID] Selfie result", result);
+        setStatus("Done: Selfie");
+      } catch (err) {
+        console.error("[AID] scanSelfie error", err);
+        setStatus(`Error capturing selfie: ${(err && err.message) || err}`);
+      } finally {
+        enableButtons(true);
+      }
+    }
+
+    // 5) Small utilities
+    function ensureDataUrl(data) {
+      // The SDK usually returns a data URL already. If it’s base64 only, prepend JPEG header.
+      if (typeof data === "string" && data.startsWith("data:")) return data;
+      return "data:image/jpeg;base64," + data;
+    }
+
+    function describeDocResult(r, side) {
+      const focus  = r?.frontFocus ?? r?.backFocus;
+      const glare  = r?.frontGlare ?? r?.backGlare;
+      const okBits = [
+        typeof focus === "number" ? `focus=${focus}` : null,
+        typeof glare === "number" ? `glare=${glare}` : null,
+      ].filter(Boolean).join(", ");
+      return `${side} captured${okBits ? ` (${okBits})` : ""}`;
+    }
+
+    function describeSelfieResult(r) {
+      // Add any flags you care about (e.g., lenses/mask/eyesClosed if returned by your config)
+      return "Selfie captured";
+    }
   </script>
-</head>
-
-<body>
-  <div>
-    <input type="hidden" id="deviceKeyInput" value="testkey">
-    <button id="loadFrameworkButton" class="btn black" onclick="initializeCaptureFramework()">Load Framework</button>
-    <p><small><i>Instructions: Tap “Load Framework” (optional). Once the SDK finishes initializing, use the buttons below to capture Front, Back, and Selfie images.</i></small></p>
-  </div>
-
-  <div class="actions">
-    <button id="front" class="btn blue">Scan Document Front</button>
-    <button id="back" class="btn red">Scan Document Back</button>
-    <button id="selfie" class="btn purple">Capture Selfie</button>
-
-    <div id="frontImg" class="imgContainer"></div>
-    <div class="box"><p id="base64Value"></p></div>
-  </div>
 </body>
 </html>
