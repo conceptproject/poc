@@ -2,28 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>AuthenticID WebSDK 5.x – Simple Capture Demo</title>
+  <title>AuthenticID WebSDK 5.x – Front/Back/Selfie Capture</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
+    :root { color-scheme: light dark; }
     body { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
-    .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    button { padding: .6rem .9rem; border-radius: .5rem; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
-    .status { margin:.5rem 0 1rem; color:#444; font-size:.95rem }
-    .previews { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; }
-    figure { margin:0; border:1px solid #eee; padding:.75rem; border-radius:.5rem; background:#fafafa }
-    figcaption { font-size:.85rem; color:#555; margin-top:.5rem; word-break: break-word; }
+    h1 { margin-bottom: .5rem; }
+    .hint { color:#666; margin: 0 0 1rem; font-size:.95rem }
+    .actions { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0 1.25rem }
+    button { padding:.6rem .9rem; border-radius:.5rem; border:1px solid #ccc; background:#fff; cursor:pointer }
+    button:disabled { opacity:.55; cursor:not-allowed }
+    .status { margin:.25rem 0 1rem; color:#444; font-size:.95rem }
+    .previews { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    figure { margin:0; border:1px solid #ececec; padding:.75rem; border-radius:.5rem; background:#fafafa }
+    figcaption { font-size:.85rem; color:#555; margin-top:.5rem; word-break:break-word }
     img { width:100%; height:auto; display:block; background:#ddd; border-radius:.25rem }
-    code { background:#f2f2f2; padding:.1rem .3rem; border-radius:.25rem }
+    code { background:#f3f3f3; padding:.1rem .35rem; border-radius:.25rem }
   </style>
 </head>
 <body>
-  <h1>AuthenticID WebSDK 5.x – Simple Capture</h1>
+  <h1>AuthenticID WebSDK – Simple Capture</h1>
+  <p class="hint">Open on <strong>HTTPS</strong> (or <code>http://localhost</code>) so the camera works.</p>
 
   <div class="actions">
-    <button id="btn-front" disabled>📄 Capture Front</button>
-    <button id="btn-back" disabled>📄 Capture Back</button>
+    <button id="btn-front"  disabled>📄 Capture Front</button>
+    <button id="btn-back"   disabled>📄 Capture Back</button>
     <button id="btn-selfie" disabled>🤳 Capture Selfie</button>
+    <!-- Optional: a one-click sequence (Front → Back → Selfie) -->
+    <button id="btn-seq"    disabled>▶️ Run Sequence (Front → Back → Selfie)</button>
   </div>
 
   <div class="status" id="status">Loading SDK…</div>
@@ -43,18 +49,26 @@
     </figure>
   </div>
 
-  <!-- 1) Include the SDK (development build) -->
+  <!-- Turn on very verbose SDK diagnostics BEFORE loading the SDK -->
+  <script>
+    window.captureFrameworkDebug = 99; // 99 = very chatty logs in console
+  </script>
+
+  <!-- Include the SDK (development/plain build) -->
   <script src="./IDMetricsCaptureFramework-4.10.0-plain-code.js"></script>
 
   <script>
-    // 2) Set up init hook required by the SDK
+    // ========================================================================
+    // 1) SDK bootstrap (required pattern) — the SDK calls this when loaded
+    // ========================================================================
     let captureFw;
 
     window.onCaptureFrameworkLoaded = async function () {
-      const detectionProvider = 1; // 1 is the only supported provider in >= 4.10.0
+      const detectionProvider = 1; // >= 4.10.0 supports "1" only
       const languageConfig = {
         lang: "en",
         localizedStrings: {
+          // Keep/customize as you like; these are relevant keys for v4.10+/5.x
           notifications: {
             faceNotFound: "Face not aligned",
             tooManyFaces: "More than one face",
@@ -116,64 +130,72 @@
       }
     };
 
-    // 3) Wire up buttons
+    // ========================================================================
+    // 2) UI wiring
+    // ========================================================================
     const $ = (id) => document.getElementById(id);
 
     const btnFront  = $("btn-front");
     const btnBack   = $("btn-back");
     const btnSelfie = $("btn-selfie");
+    const btnSeq    = $("btn-seq");
 
-    btnFront.addEventListener("click", async () => {
-      await captureIdSide("Front", $("img-front"), $("meta-front"));
-    });
-
-    btnBack.addEventListener("click", async () => {
-      await captureIdSide("Back", $("img-back"), $("meta-back"));
-    });
-
-    btnSelfie.addEventListener("click", async () => {
-      await captureSelfie($("img-selfie"), $("meta-selfie"));
-    });
+    btnFront.addEventListener("click",  () => captureIdSide("Front", $("img-front"),  $("meta-front")));
+    btnBack.addEventListener("click",   () => captureIdSide("Back",  $("img-back"),   $("meta-back")));
+    btnSelfie.addEventListener("click", () => captureSelfie($("img-selfie"), $("meta-selfie")));
+    btnSeq.addEventListener("click",    () => runSequence());
 
     function enableButtons(on) {
       btnFront.disabled  = !on;
       btnBack.disabled   = !on;
       btnSelfie.disabled = !on;
+      btnSeq.disabled    = !on;
     }
 
     function setStatus(text) {
       $("status").textContent = text;
     }
 
-    // 4) Helpers to drive the SDK
+    // ========================================================================
+    // 3) Capture helpers (Front/Back Selfie)
+    //    - Forces single-side flow for each side to avoid the undefined crash
+    //    - Very defensive when reading images from the result object
+    // ========================================================================
     async function captureIdSide(side, imgEl, metaEl) {
-      // Minimal options — you can add captureMode, documentType, theme colors, etc.
+      // Some builds use "flow", others use "mode" — set both (harmless).
+      const singleSide = side === "Front" ? "front_only" : "back_only";
+
       const options = {
-        documentSide: side,            // "Front" | "Back"
-        documentType: "License",       // or "Passport", "PassportCard" if supported
-        captureMode: "Auto"            // "Auto" | "Manual"
+        // Force one-side flow to match the SDK branch you saw in the stack
+        flow: singleSide,
+        mode: singleSide,
+
+        // Typical doc options
+        documentSide: side,          // "Front" | "Back"
+        documentType: "License",     // Change to "Passport" / "PassportCard" if needed
+        captureMode: "Auto"          // or "Manual" if auto-capture struggles
       };
 
       try {
         enableButtons(false);
         setStatus(`Capturing ${side.toLowerCase()}…`);
+
         const result = await captureFw.scanDocument(options);
 
-        // The SDK typically returns both full and cropped; favor cropped if present
-        const img =
-          result?.croppedResult     ||
-          result?.croppedFrontImage ||
-          result?.croppedBackImage  ||
-          result?.result            ||
-          result?.frontImage        ||
-          result?.backImage         ||
-          null;
+        // Diagnostics so we can see what actually came back:
+        const rawFront = result?.frontImage;
+        const rawBack  = result?.backImage;
+        console.log(`[AID] Raw ${side} images`, {
+          hasFront: !!rawFront, hasBack: !!rawBack,
+          frontLen: rawFront?.length, backLen: rawBack?.length
+        });
 
+        const img = pickDocImage(result, side);
         if (img) {
           imgEl.src = ensureDataUrl(img);
           metaEl.textContent = describeDocResult(result, side);
         } else {
-          metaEl.textContent = "No image returned.";
+          metaEl.textContent = `No ${side.toLowerCase()} image returned`;
         }
 
         console.log(`[AID] ${side} result`, result);
@@ -190,16 +212,18 @@
       try {
         enableButtons(false);
         setStatus("Capturing selfie…");
+
         const result = await captureFw.scanSelfie({
           captureMode: "Auto" // or "Manual"
         });
 
         const img = result?.croppedResult || result?.result || null;
+
         if (img) {
           imgEl.src = ensureDataUrl(img);
           metaEl.textContent = describeSelfieResult(result);
         } else {
-          metaEl.textContent = "No image returned.";
+          metaEl.textContent = "No selfie image returned";
         }
 
         console.log("[AID] Selfie result", result);
@@ -212,25 +236,120 @@
       }
     }
 
-    // 5) Small utilities
+    // ========================================================================
+    // 4) Optional: One-click sequence (Front → Back → Selfie)
+    //    - Tries a combined two-side flow first; if not supported, falls back
+    //      to doing two single-side document calls.
+    // ========================================================================
+    async function runSequence() {
+      enableButtons(false);
+      setStatus("Starting sequence…");
+
+      const out = {
+        front: null, back: null, selfie: null,
+        meta: { startedAt: new Date().toISOString() }
+      };
+
+      try {
+        // Try a combined ID flow first (if your build supports it)
+        try {
+          const doc = await captureFw.scanDocument({
+            flow: "front_then_back", // or "two_sides" in some builds
+            mode: "front_then_back",
+            documentType: "License",
+            captureMode: "Auto"
+          });
+
+          // Combined flow often returns both sides; pick defensively:
+          out.front = pickDocImage(doc, "Front");
+          out.back  = pickDocImage(doc, "Back");
+          console.log("[AID] Combined doc result", doc);
+
+          // If one side missing, fill it with single-side calls:
+          if (!out.front) {
+            const frontOnly = await captureFw.scanDocument({
+              flow: "front_only", mode: "front_only",
+              documentSide: "Front", documentType: "License", captureMode: "Auto"
+            });
+            out.front = pickDocImage(frontOnly, "Front");
+          }
+          if (!out.back) {
+            const backOnly = await captureFw.scanDocument({
+              flow: "back_only", mode: "back_only",
+              documentSide: "Back", documentType: "License", captureMode: "Auto"
+            });
+            out.back = pickDocImage(backOnly, "Back");
+          }
+        } catch (e) {
+          // Fallback: do the two single-side calls
+          console.warn("[AID] Combined flow unsupported; falling back to single-side", e);
+          const frontOnly = await captureFw.scanDocument({
+            flow: "front_only", mode: "front_only",
+            documentSide: "Front", documentType: "License", captureMode: "Auto"
+          });
+          out.front = pickDocImage(frontOnly, "Front");
+
+          const backOnly = await captureFw.scanDocument({
+            flow: "back_only", mode: "back_only",
+            documentSide: "Back", documentType: "License", captureMode: "Auto"
+          });
+          out.back = pickDocImage(backOnly, "Back");
+        }
+
+        // Selfie
+        const face = await captureFw.scanSelfie({ captureMode: "Auto" });
+        out.selfie = face?.croppedResult || face?.result || null;
+
+        // Render to previews (if we got them)
+        if (out.front) $("img-front").src = ensureDataUrl(out.front);
+        if (out.back)  $("img-back").src  = ensureDataUrl(out.back);
+        if (out.selfie) $("img-selfie").src = ensureDataUrl(out.selfie);
+
+        $("meta-front").textContent  = out.front  ? "Front captured"  : "Front missing";
+        $("meta-back").textContent   = out.back   ? "Back captured"   : "Back missing";
+        $("meta-selfie").textContent = out.selfie ? "Selfie captured" : "Selfie missing";
+
+        console.log("[AID] Sequence output", out);
+        setStatus("Sequence complete");
+      } catch (err) {
+        console.error("[AID] Sequence error", err);
+        setStatus(`Sequence failed: ${(err && err.message) || err}`);
+      } finally {
+        enableButtons(true);
+      }
+    }
+
+    // ========================================================================
+    // 5) Utilities
+    // ========================================================================
     function ensureDataUrl(data) {
-      // The SDK usually returns a data URL already. If it’s base64 only, prepend JPEG header.
       if (typeof data === "string" && data.startsWith("data:")) return data;
       return "data:image/jpeg;base64," + data;
+    }
+
+    function pickDocImage(r, side) {
+      // Prefer cropped, then per-side cropped, then general, then raw per-side
+      const candidates = [
+        r?.croppedResult,
+        side === "Front" ? r?.croppedFrontImage : r?.croppedBackImage,
+        r?.result,
+        side === "Front" ? r?.frontImage : r?.backImage
+      ];
+      const first = candidates.find(x => typeof x === "string" && x.length > 20);
+      return first || null;
     }
 
     function describeDocResult(r, side) {
       const focus  = r?.frontFocus ?? r?.backFocus;
       const glare  = r?.frontGlare ?? r?.backGlare;
-      const okBits = [
+      const bits = [
         typeof focus === "number" ? `focus=${focus}` : null,
-        typeof glare === "number" ? `glare=${glare}` : null,
+        typeof glare === "number" ? `glare=${glare}` : null
       ].filter(Boolean).join(", ");
-      return `${side} captured${okBits ? ` (${okBits})` : ""}`;
+      return `${side} captured${bits ? ` (${bits})` : ""}`;
     }
 
-    function describeSelfieResult(r) {
-      // Add any flags you care about (e.g., lenses/mask/eyesClosed if returned by your config)
+    function describeSelfieResult(_) {
       return "Selfie captured";
     }
   </script>
