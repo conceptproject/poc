@@ -127,39 +127,46 @@
         captureFw.scanDocument(documentSettings, captureResult);
     });
 }       
-        function setupSelfieCapture() {
-            const selfieSettings = new SelfieSettings();
-            selfieSettings.cameraFacing = "user";
+  function setupSelfieCapture() {
+    const selfieSettings = new SelfieSettings();
+    selfieSettings.cameraFacing = "user";
 
-            const button = document.getElementById("capture_selfie_button");
+    const button = document.getElementById("capture_selfie_button");
+    button.addEventListener("click", () => {
+        const selfieResult = new CaptureResult();
 
-            button.addEventListener("click", () => {
-                // ✅ NEW CaptureResult PER CAPTURE
-                const selfieResult = new CaptureResult();
+        selfieResult.setOnFinish(() => {
+            const dataUri = selfieResult.result;
 
-                selfieResult.setOnFinish(() => {
-                    const dataUri = selfieResult.result;
-                    if (typeof dataUri !== "string") return;
+            if (typeof dataUri !== "string") return;
 
-                    let img = document.getElementById("selfiePreview");
-                    if (!img) {
-                        img = document.createElement("img");
-                        img.id = "selfiePreview";
-                        img.style.width = "200px";
-                        img.style.height = "auto";
-                        document.querySelector(".info").appendChild(img);
-                    }
-                    img.src = dataUri;
-                });
+            // 👉 PRINT SELFIE BASE64 TO CONSOLE
+            console.log("Selfie Base64:", dataUri);
 
-                selfieResult.setOnAborted(() => {
-                    console.log("Selfie capture aborted");
-                });
+            let img = document.getElementById("selfiePreview");
+            if (!img) {
+                img = document.createElement("img");
+                img.id = "selfiePreview";
+                img.style.width = "200px";
+                img.style.height = "auto";
+                document.querySelector(".info").appendChild(img);
+            }
+            img.src = dataUri;
+        });
 
-                captureFw.scanSelfie(selfieSettings, selfieResult);
-            });
-        }
-    </script>
+        selfieResult.setOnAborted(() => {
+            console.log("Selfie capture aborted");
+        });
+
+        selfieResult.setOnEvent((code, description) => {
+            console.log("Selfie event:", code, description);
+        });
+
+        captureFw.scanSelfie(selfieSettings, selfieResult);
+    });
+}
+  
+  </script>
 
     <script src="IDMetricsCaptureFramework.js"></script>
 </body>
