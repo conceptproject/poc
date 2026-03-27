@@ -17,7 +17,9 @@
         <h1>WebSDK 5.0 Testing</h1>
 
         <div class="form-row">
-            <button id="getDocumentImages">Get Document Images</button>
+            <button id="getDocumentImages">Get Document Front</button>
+             <button id="getDocumentBack">Get Document Back</button>
+           
             <button id="capture_selfie_button">Capture Selfie</button>
         </div>
 
@@ -46,6 +48,7 @@
             await captureFw.setDetectionProvider(detectionProvider, languageConfig);
 
             setupDocumentCapture();
+            setupDocumentBackCapture(); 
             setupSelfieCapture();
         };
 
@@ -88,6 +91,42 @@
             });
         }
 
+ function setupDocumentBackCapture() {
+    const documentSettings = new DocumentSettings();
+    documentSettings.captureMode = "Manual";
+    documentSettings.documentType = "License";
+    documentSettings.documentSide = "Back";   // 👈 Back side
+
+    const button = document.getElementById("getDocumentBack");
+    button.addEventListener("click", () => {
+        const captureResult = new CaptureResult();
+
+        captureResult.setOnFinish(() => {
+            const dataUri = captureResult.result;
+            console.log("Back side captured:", dataUri);  // 👈 Print to console
+
+            let img = document.getElementById("capturedBackPreview");
+            if (!img) {
+                img = document.createElement("img");
+                img.id = "capturedBackPreview";
+                img.style.width = "200px";
+                img.style.height = "auto";
+                document.querySelector(".info").appendChild(img);
+            }
+            img.src = dataUri;
+        });
+
+        captureResult.setOnAborted(() => {
+            console.log("Back-side capture aborted");
+        });
+
+        captureResult.setOnEvent((code, description) => {
+            console.log("Event:", code, description);
+        });
+
+        captureFw.scanDocument(documentSettings, captureResult);
+    });
+}       
         function setupSelfieCapture() {
             const selfieSettings = new SelfieSettings();
             selfieSettings.cameraFacing = "user";
