@@ -135,24 +135,27 @@
     button.addEventListener("click", () => {
         const selfieResult = new CaptureResult();
 
-        selfieResult.setOnFinish(() => {
-            const dataUri = selfieResult.result;
+    selfieResult.setOnFinish(() => {
+        const dataUri = selfieResult.result;
 
-            if (typeof dataUri !== "string") return;
+        if (!dataUri || typeof dataUri !== "string") {
+            console.error("Selfie capture failed — result is empty or undefined:", dataUri);
+            return;
+        }
 
-            // 👉 PRINT SELFIE BASE64 TO CONSOLE
-            console.log("Selfie Base64:", dataUri);
+        console.log("Selfie Base64:", dataUri);
 
-            let img = document.getElementById("selfiePreview");
-            if (!img) {
-                img = document.createElement("img");
-                img.id = "selfiePreview";
-                img.style.width = "200px";
-                img.style.height = "auto";
-                document.querySelector(".info").appendChild(img);
-            }
-            img.src = dataUri;
-        });
+        let img = document.getElementById("selfiePreview");
+        if (!img) {
+            img = document.createElement("img");
+            img.id = "selfiePreview";
+            img.style.width = "200px";
+            img.style.height = "auto";
+            document.querySelector(".info").appendChild(img);
+        }
+
+        img.src = dataUri;
+    });
 
         selfieResult.setOnAborted(() => {
             console.log("Selfie capture aborted");
