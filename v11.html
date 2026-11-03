@@ -1,0 +1,234 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>WebSDK 5.0 Optimized</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Preload SDK JavaScript -->
+    <link rel="preload"
+          href="IDMetricsCaptureFramework.js"
+          as="script">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>WebSDK 5.0 Testing</h1>
+
+    <div class="form-row">
+        <button id="getDocumentImages" disabled>
+            Get Document Front
+        </button>
+
+        <button id="getDocumentBack" disabled>
+            Get Document Back
+        </button>
+
+        <button id="capture_selfie_button" disabled>
+            Capture Selfie
+        </button>
+    </div>
+
+    <div id="message"></div>
+
+    <div class="capture-wrapper">
+        <div id="idmetrics-container"></div>
+    </div>
+
+    <div class="info">
+        <img id="frontPreview" width="200">
+        <img id="backPreview" width="200">
+        <img id="selfiePreview" width="200">
+    </div>
+</div>
+
+<script>
+const SDK = {
+    framework: null,
+    ready: false,
+    initializationPromise: null,
+    busy: false,
+
+    settings: {}
+};
+
+// One-time initialization
+window.onCaptureFrameworkLoaded = function () {
+
+    if (SDK.initializationPromise) {
+        return SDK.initializationPromise;
+    }
+
+    SDK.initializationPromise = initializeSDK();
+
+    return SDK.initializationPromise;
+};
+
+async function initializeSDK() {
+
+    const start = performance.now();
+
+    try {
+
+        SDK.framework = window.IDMetricsCaptureFramework;
+
+        await SDK.framework.setDetectionProvider(
+            1,
+            {
+                lang: "en",
+                localizedStrings: {}
+            }
+        );
+
+        // Create settings once
+        const front = new DocumentSettings();
+        front.captureMode = "Manual";
+        front.documentType = "License";
+        front.documentSide = "Front";
+
+        const back = new DocumentSettings();
+        back.captureMode = "Manual";
+        back.documentType = "License";
+        back.documentSide = "Back";
+
+        const selfie = new SelfieSettings();
+        selfie.cameraFacing = "user";
+
+        SDK.settings = {
+            front,
+            back,
+            selfie
+        };
+
+        SDK.ready = true;
+
+        document.querySelectorAll("button")
+            .forEach(button => button.disabled = false);
+
+        console.log(
+            "SDK ready:",
+            (performance.now() - start).toFixed(2),
+            "ms"
+        );
+
+    } catch (error) {
+        console.error("SDK initialization error:", error);
+        SDK.initializationPromise = null;
+        throw error;
+    }
+}
+
+
+// Common capture function
+function startCapture(type) {
+
+    if (!SDK.ready || SDK.busy) {
+        return;
+    }
+
+    SDK.busy = true;
+
+    const start = performance.now();
+
+    const settings = SDK.settings[type];
+
+    const result = new CaptureResult();
+
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach(button => button.disabled = true);
+
+    console.log(type, "Capture requested");
+
+    result.setOnFinish(() => {
+
+        console.log(
+            type,
+            "Capture completed:",
+            (performance.now() - start).toFixed(2),
+            "ms"
+        );
+
+        const image = result.result;
+
+        if (typeof image === "string" && image.length) {
+            document.getElementById(type + "Preview").src = image;
+        }
+
+        releaseCapture();
+    });
+
+    result.setOnAborted(() => {
+        console.log(type, "Capture aborted");
+        releaseCapture();
+    });
+
+    result.setOnEvent((code, description) => {
+
+        console.log(
+            type,
+            "SDK Event:",
+            code,
+            description,
+            "Elapsed:",
+            (performance.now() - start).toFixed(2),
+            "ms"
+        );
+
+    });
+
+    try {
+
+        const invocationStart = performance.now();
+
+        if (type === "selfie") {
+            SDK.framework.scanSelfie(settings, result);
+        } else {
+            SDK.framework.scanDocument(settings, result);
+        }
+
+        console.log(
+            type,
+            "SDK invocation:",
+            (performance.now() - invocationStart).toFixed(2),
+            "ms"
+        );
+
+    } catch (error) {
+
+        console.error(type, "Capture error:", error);
+        releaseCapture();
+
+    }
+}
+
+function releaseCapture() {
+
+    SDK.busy = false;
+
+    document.querySelectorAll("button")
+        .forEach(button => button.disabled = false);
+}
+
+
+// Button handlers
+document.getElementById("getDocumentImages")
+    .addEventListener("click", () => startCapture("front"));
+
+document.getElementById("getDocumentBack")
+    .addEventListener("click", () => startCapture("back"));
+
+document.getElementById("capture_selfie_button")
+    .addEventListener("click", () => startCapture("selfie"));
+
+</script>
+
+<script src="IDMetricsCaptureFramework.js"></script>
+
+</body>
+</html>
